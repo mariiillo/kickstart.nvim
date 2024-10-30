@@ -743,6 +743,7 @@ require('lazy').setup({
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'zbirenbaum/copilot-cmp',
     },
     config = function()
       -- See `:help cmp`
@@ -816,9 +817,10 @@ require('lazy').setup({
             -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
             group_index = 0,
           },
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' },
-          { name = 'path' },
+          { name = 'copilot', group_index = 2 },
+          { name = 'nvim_lsp', group_index = 2 },
+          { name = 'luasnip', group_index = 2 },
+          { name = 'path', group_index = 2 },
         },
       }
     end,
@@ -907,7 +909,124 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
-
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    event = 'InsertEnter',
+    opts = {
+      panel = { enabled = false },
+      suggestion = { enabled = false },
+      filetypes = {
+        markdown = true,
+        help = true,
+        yaml = true,
+        gitcommit = true,
+      },
+    },
+  },
+  {
+    'zbirenbaum/copilot-cmp',
+    config = function()
+      require('copilot_cmp').setup()
+    end,
+  },
+  {
+    'CopilotC-Nvim/CopilotChat.nvim',
+    branch = 'canary',
+    dependencies = {
+      { 'zbirenbaum/copilot.lua' }, -- or github/copilot.vim
+      { 'nvim-lua/plenary.nvim' }, -- for curl, log wrapper
+    },
+    build = 'make tiktoken', -- Only on MacOS or Linux
+    opts = {
+      debug = true, -- Enable debugging
+      -- See Configuration section for rest
+    },
+    {
+      'nvim-neotest/neotest',
+      lazy = true,
+      dependencies = {
+        'nvim-neotest/nvim-nio',
+        'nvim-lua/plenary.nvim',
+        'antoinemadec/FixCursorHold.nvim',
+        'nvim-treesitter/nvim-treesitter',
+        'olimorris/neotest-rspec',
+      },
+      config = function()
+        require('neotest').setup {
+          adapters = {
+            require 'neotest-rspec',
+          },
+        }
+      end,
+      keys = {
+        { '<leader>t', '', desc = '+test' },
+        {
+          '<leader>tt',
+          function()
+            require('neotest').run.run(vim.fn.expand '%')
+          end,
+          desc = 'Run File',
+        },
+        {
+          '<leader>tT',
+          function()
+            require('neotest').run.run(vim.uv.cwd())
+          end,
+          desc = 'Run All Test Files',
+        },
+        {
+          '<leader>tr',
+          function()
+            require('neotest').run.run()
+          end,
+          desc = 'Run Nearest',
+        },
+        {
+          '<leader>tl',
+          function()
+            require('neotest').run.run_last()
+          end,
+          desc = 'Run Last',
+        },
+        {
+          '<leader>ts',
+          function()
+            require('neotest').summary.toggle()
+          end,
+          desc = 'Toggle Summary',
+        },
+        {
+          '<leader>to',
+          function()
+            require('neotest').output.open { enter = true, auto_close = true }
+          end,
+          desc = 'Show Output',
+        },
+        {
+          '<leader>tO',
+          function()
+            require('neotest').output_panel.toggle()
+          end,
+          desc = 'Toggle Output Panel',
+        },
+        {
+          '<leader>tS',
+          function()
+            require('neotest').run.stop()
+          end,
+          desc = 'Stop',
+        },
+        {
+          '<leader>tw',
+          function()
+            require('neotest').watch.toggle(vim.fn.expand '%')
+          end,
+          desc = 'Toggle Watch',
+        },
+      },
+    },
+  },
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
